@@ -1,0 +1,973 @@
+openapi: 3.0.3
+info:
+  title: StudyPulse · CanvaSLS API
+  version: 1.0.0
+  description: '6 microservicios serverless (un API Gateway cada uno). Pulsa **Authorize**,
+    pega el `token` de /auth/login y prueba. El tenant NUNCA se envía: sale del token
+    (Lambda Authorizer). Credenciales demo: profe@utec.edu.pe / Demo2026!'
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+paths:
+  /auth/registro:
+    post:
+      tags:
+      - ms-auth
+      summary: Registrar usuario (alumno/docente) en un tenant
+      operationId: registro
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              tenant_id: UTEC
+              email: nuevo@utec.edu.pe
+              nombre: Nuevo Alumno
+              password: ClaveSegura1
+              rol: alumno
+    servers:
+    - url: https://api.invalid/auth
+      description: ms-auth
+  /auth/login:
+    post:
+      tags:
+      - ms-auth
+      summary: Iniciar sesión → token con TTL
+      operationId: login
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              tenant_id: UTEC
+              email: profe@utec.edu.pe
+              password: Demo2026!
+    servers:
+    - url: https://api.invalid/auth
+      description: ms-auth
+  /auth/me:
+    get:
+      tags:
+      - ms-auth
+      summary: Identidad del token
+      operationId: me
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/auth
+      description: ms-auth
+  /auth/usuarios:
+    get:
+      tags:
+      - ms-auth
+      summary: Listar usuarios del tenant (paginado)
+      operationId: listarUsuarios
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/auth
+      description: ms-auth
+  /cursos:
+    get:
+      tags:
+      - ms-cursos
+      summary: Listar cursos según rol
+      operationId: listarCursos
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/cursos
+      description: ms-cursos
+    post:
+      tags:
+      - ms-cursos
+      summary: Crear curso
+      operationId: crearCurso
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              codigo: CS2032
+              nombre: Computación en la Nube
+  /cursos/{curso_id}:
+    put:
+      tags:
+      - ms-cursos
+      summary: Modificar curso
+      operationId: modificarCurso
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              nombre: Computación en la Nube (2026-2)
+    servers:
+    - url: https://api.invalid/cursos
+      description: ms-cursos
+    delete:
+      tags:
+      - ms-cursos
+      summary: Eliminar curso
+      operationId: eliminarCurso
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /cursos/{curso_id}/modulos:
+    get:
+      tags:
+      - ms-cursos
+      summary: Listar módulos
+      operationId: listarModulos
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/cursos
+      description: ms-cursos
+    post:
+      tags:
+      - ms-cursos
+      summary: Publicar módulo (emite ModuloPublicado)
+      operationId: publicarModulo
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              titulo: 'Módulo 7: Observabilidad'
+  /cursos/{curso_id}/matriculas:
+    post:
+      tags:
+      - ms-cursos
+      summary: Matricular (autoservicio del alumno)
+      operationId: matricularEstudiante
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/cursos
+      description: ms-cursos
+    get:
+      tags:
+      - ms-cursos
+      summary: Listar matrículas del curso
+      operationId: listarMatriculas
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+  /cursos/{curso_id}/modulos/{modulo_id}/materiales:
+    post:
+      tags:
+      - ms-cursos
+      summary: Registrar material y obtener URL prefirmada PUT (S3)
+      operationId: agregarMaterial
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: modulo_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              nombre_archivo: guia.pdf
+              content_type: application/pdf
+    servers:
+    - url: https://api.invalid/cursos
+      description: ms-cursos
+  /cursos/{curso_id}/modulos/{modulo_id}/materiales/{material_id}/descarga:
+    get:
+      tags:
+      - ms-cursos
+      summary: URL prefirmada GET (S3)
+      operationId: descargarMaterial
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: modulo_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: material_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/cursos
+      description: ms-cursos
+  /evaluaciones/cursos/{curso_id}/tareas:
+    get:
+      tags:
+      - ms-evaluaciones
+      summary: Listar tareas del curso
+      operationId: listarTareas
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/eval
+      description: ms-evaluaciones
+    post:
+      tags:
+      - ms-evaluaciones
+      summary: Crear tarea
+      operationId: crearTarea
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              titulo: Laboratorio 5
+              fecha_limite: '2026-12-01T23:59:00Z'
+              puntaje_max: 20
+  /evaluaciones/cursos/{curso_id}/tareas/{tarea_id}/entregas:
+    post:
+      tags:
+      - ms-evaluaciones
+      summary: Entregar tarea (emite EntregaRegistrada)
+      operationId: registrarEntrega
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: tarea_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              texto: Adjunto mi solución
+    servers:
+    - url: https://api.invalid/eval
+      description: ms-evaluaciones
+    get:
+      tags:
+      - ms-evaluaciones
+      summary: Listar entregas de una tarea (docente)
+      operationId: listarEntregas
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: tarea_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+  /evaluaciones/cursos/{curso_id}/tareas/{tarea_id}/entregas/{alumno_id}/calificacion:
+    put:
+      tags:
+      - ms-evaluaciones
+      summary: Calificar entrega (emite NotaPublicada)
+      operationId: calificarEntrega
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: curso_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: tarea_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: alumno_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              nota: 4
+              retroalimentacion: Reforzar IAM
+    servers:
+    - url: https://api.invalid/eval
+      description: ms-evaluaciones
+  /evaluaciones/mis-notas:
+    get:
+      tags:
+      - ms-evaluaciones
+      summary: Mis entregas y resumen
+      operationId: misNotas
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/eval
+      description: ms-evaluaciones
+  /analitica/alumnos/{alumno_id}:
+    get:
+      tags:
+      - ms-analitica
+      summary: Indicadores y semáforo de un alumno
+      operationId: obtenerIndicadores
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: alumno_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/analitica
+      description: ms-analitica
+  /analitica/riesgo:
+    get:
+      tags:
+      - ms-analitica
+      summary: Alumnos por nivel de riesgo (GSI)
+      operationId: consultarRiesgo
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/analitica
+      description: ms-analitica
+  /analitica/resumen:
+    get:
+      tags:
+      - ms-analitica
+      summary: Conteo VERDE/AMBAR/ROJO
+      operationId: resumenRiesgo
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/analitica
+      description: ms-analitica
+  /notificaciones:
+    get:
+      tags:
+      - ms-notificaciones
+      summary: Bandeja del usuario
+      operationId: listarNotificaciones
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/notif
+      description: ms-notificaciones
+  /notificaciones/leida:
+    post:
+      tags:
+      - ms-notificaciones
+      summary: Marcar una notificación
+      operationId: marcarLeida
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: D001#2026-11-12T10:00:00Z#<event_id>
+    servers:
+    - url: https://api.invalid/notif
+      description: ms-notificaciones
+  /notificaciones/leida-todas:
+    post:
+      tags:
+      - ms-notificaciones
+      summary: Marcar todas
+      operationId: marcarTodas
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+    servers:
+    - url: https://api.invalid/notif
+      description: ms-notificaciones
+  /notificaciones/traza:
+    get:
+      tags:
+      - ms-notificaciones
+      summary: Línea de tiempo de eventos del tenant
+      operationId: trazaEventos
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/notif
+      description: ms-notificaciones
+  /practica/quiz:
+    get:
+      tags:
+      - ms-practica
+      summary: Quiz de práctica (sin respuestas)
+      operationId: obtenerQuiz
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        schema:
+          type: string
+    servers:
+    - url: https://api.invalid/practica
+      description: ms-practica
+  /practica/quiz/completar:
+    post:
+      tags:
+      - ms-practica
+      summary: Calificar quiz (emite QuizCompletado)
+      operationId: completarQuiz
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              curso_id: C0001
+              respuestas:
+              - tarjeta_id: K00001
+                opcion: 0
+    servers:
+    - url: https://api.invalid/practica
+      description: ms-practica
