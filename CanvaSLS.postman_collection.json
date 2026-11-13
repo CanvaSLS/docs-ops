@@ -1,0 +1,1466 @@
+{
+  "info": {
+    "name": "CanvaSLS · LMS multi-tenant (dev)",
+    "description": "Coleccion generada desde el despliegue real en AWS Academy (cuenta 313164171003, us-east-1, stage dev).\n\nCOMO USARLA\n1. Ejecuta '1 - Acceso > Login docente UTEC'. Guarda {{token}} y lo aplica a todo.\n2. Ejecuta '2 - Cursos > Listar cursos' para fijar {{cursoId}}.\n3. Las demas carpetas ya pueden ejecutarse en orden.\n\nEl flujo de eventos completo es: Evaluaciones > Crear tarea, luego Login alumna + Registrar entrega, luego Login docente + Calificar, y por ultimo Analitica > Indicadores y Notificaciones > Bandeja.\n\nUsuarios sembrados: profe, ana.torres y admin en cada tenant. Contrasena Demo2026!\nDominios: UTEC -> utec.edu.pe, NORTE -> inorte.edu.pe, ANDINO -> andino.edu.pe.\n\nSi se recrea algun stack, cambia las variables urlAuth, urlCursos, urlEval, urlAnalitica y urlNotif en la pestana Variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "urlAuth",
+      "value": "https://708i3626o6.execute-api.us-east-1.amazonaws.com/dev",
+      "type": "string"
+    },
+    {
+      "key": "urlCursos",
+      "value": "https://5voksi80e7.execute-api.us-east-1.amazonaws.com/dev",
+      "type": "string"
+    },
+    {
+      "key": "urlEval",
+      "value": "https://865gwpgnlb.execute-api.us-east-1.amazonaws.com/dev",
+      "type": "string"
+    },
+    {
+      "key": "urlAnalitica",
+      "value": "https://fxtn17kir4.execute-api.us-east-1.amazonaws.com/dev",
+      "type": "string"
+    },
+    {
+      "key": "urlNotif",
+      "value": "https://rso6z2pwqk.execute-api.us-east-1.amazonaws.com/dev",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "Demo2026!",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenantActual",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "rolActual",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cursoId",
+      "value": "C0001",
+      "type": "string"
+    },
+    {
+      "key": "cursoNuevoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cursoAisladoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tareaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alumnoId",
+      "value": "A00001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1 · Acceso (ms-auth)",
+      "description": "El tenant sale del token. La contrasena de todos los usuarios sembrados es Demo2026!",
+      "item": [
+        {
+          "name": "Entrar como profe (UTEC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/login",
+              "host": [
+                "{{urlAuth}}/auth/login"
+              ]
+            },
+            "description": "Guarda {{token}} y lo aplica al resto de la coleccion.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"UTEC\",\n  \"email\": \"profe@utec.edu.pe\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y token presente', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(d).to.have.property('token');",
+                  "});",
+                  "// El tenant y el rol los decide el token, no el cliente:",
+                  "// se guardan para que el resto de la coleccion los use.",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.collectionVariables.set('tenantActual', d.usuario.tenant_id);",
+                  "pm.collectionVariables.set('rolActual', d.usuario.rol);",
+                  "pm.collectionVariables.set('userId', d.usuario.user_id);",
+                  "console.log('sesion:', d.usuario.tenant_id, d.usuario.rol, d.usuario.nombre);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrar como profe (NORTE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/login",
+              "host": [
+                "{{urlAuth}}/auth/login"
+              ]
+            },
+            "description": "Ojo: el tenant es NORTE pero el dominio del correo es @inorte.edu.pe.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"NORTE\",\n  \"email\": \"profe@inorte.edu.pe\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y token presente', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(d).to.have.property('token');",
+                  "});",
+                  "// El tenant y el rol los decide el token, no el cliente:",
+                  "// se guardan para que el resto de la coleccion los use.",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.collectionVariables.set('tenantActual', d.usuario.tenant_id);",
+                  "pm.collectionVariables.set('rolActual', d.usuario.rol);",
+                  "pm.collectionVariables.set('userId', d.usuario.user_id);",
+                  "console.log('sesion:', d.usuario.tenant_id, d.usuario.rol, d.usuario.nombre);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrar como profe (ANDINO)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/login",
+              "host": [
+                "{{urlAuth}}/auth/login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"ANDINO\",\n  \"email\": \"profe@andino.edu.pe\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y token presente', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(d).to.have.property('token');",
+                  "});",
+                  "// El tenant y el rol los decide el token, no el cliente:",
+                  "// se guardan para que el resto de la coleccion los use.",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.collectionVariables.set('tenantActual', d.usuario.tenant_id);",
+                  "pm.collectionVariables.set('rolActual', d.usuario.rol);",
+                  "pm.collectionVariables.set('userId', d.usuario.user_id);",
+                  "console.log('sesion:', d.usuario.tenant_id, d.usuario.rol, d.usuario.nombre);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrar como profe (UTEC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/login",
+              "host": [
+                "{{urlAuth}}/auth/login"
+              ]
+            },
+            "description": "Vuelve a UTEC para el resto de las carpetas.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"UTEC\",\n  \"email\": \"profe@utec.edu.pe\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y token presente', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(d).to.have.property('token');",
+                  "});",
+                  "// El tenant y el rol los decide el token, no el cliente:",
+                  "// se guardan para que el resto de la coleccion los use.",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.collectionVariables.set('tenantActual', d.usuario.tenant_id);",
+                  "pm.collectionVariables.set('rolActual', d.usuario.rol);",
+                  "pm.collectionVariables.set('userId', d.usuario.user_id);",
+                  "console.log('sesion:', d.usuario.tenant_id, d.usuario.rol, d.usuario.nombre);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Quien soy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlAuth}}/auth/me",
+              "host": [
+                "{{urlAuth}}/auth/me"
+              ]
+            },
+            "description": "Devuelve el usuario del token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('el usuario sale del token', () => {",
+                  "  pm.expect(pm.response.json().tenant_id || pm.response.json().usuario.tenant_id)",
+                  "    .to.eql(pm.collectionVariables.get('tenantActual'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar usuarios del tenant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlAuth}}/auth/usuarios",
+              "host": [
+                "{{urlAuth}}/auth/usuarios"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 · Cursos (ms-cursos · RDS)",
+      "description": "Un esquema MySQL por tenant: cursos_utec, cursos_norte, cursos_andino.",
+      "item": [
+        {
+          "name": "Listar cursos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlCursos}}/cursos",
+              "host": [
+                "{{urlCursos}}/cursos"
+              ]
+            },
+            "description": "Guarda el primer curso en {{cursoId}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y solo cursos de mi tenant', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  d.cursos.forEach(c => pm.expect(c.tenant_id).to.eql(pm.collectionVariables.get('tenantActual')));",
+                  "});",
+                  "if (d.cursos.length) pm.collectionVariables.set('cursoId', d.cursos[0].curso_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear curso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlCursos}}/cursos",
+              "host": [
+                "{{urlCursos}}/cursos"
+              ]
+            },
+            "description": "Requiere rol docente o admin. Guarda {{cursoNuevoId}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"CS-NEW\",\n  \"nombre\": \"Curso creado desde Postman\",\n  \"descripcion\": \"Evidencia de alta para el avance\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('cursoNuevoId', pm.response.json().curso_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modificar curso",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlCursos}}/cursos/{{cursoNuevoId}}",
+              "host": [
+                "{{urlCursos}}/cursos/{{cursoNuevoId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Curso modificado desde Postman\",\n  \"color\": \"#2f855a\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar curso",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{urlCursos}}/cursos/{{cursoNuevoId}}",
+              "host": [
+                "{{urlCursos}}/cursos/{{cursoNuevoId}}"
+              ]
+            },
+            "description": "Cierra el ciclo crear/modificar/eliminar del guion del avance."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar modulos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlCursos}}/cursos/{{cursoId}}/modulos",
+              "host": [
+                "{{urlCursos}}/cursos/{{cursoId}}/modulos"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Publicar modulo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlCursos}}/cursos/{{cursoId}}/modulos",
+              "host": [
+                "{{urlCursos}}/cursos/{{cursoId}}/modulos"
+              ]
+            },
+            "description": "Publica el evento ModuloPublicado en SNS.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Modulo publicado desde Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar matriculas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlCursos}}/cursos/{{cursoId}}/matriculas",
+              "host": [
+                "{{urlCursos}}/cursos/{{cursoId}}/matriculas"
+              ]
+            },
+            "description": "Solo el docente dueno del curso."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 · Evaluaciones (ms-evaluaciones · RDS)",
+      "description": "Productor de EntregaRegistrada y NotaPublicada. Ejecutar en orden.",
+      "item": [
+        {
+          "name": "Listar tareas del curso",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas",
+              "host": [
+                "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "if (d.tareas.length) pm.collectionVariables.set('tareaId', d.tareas[0].tarea_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear tarea (docente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas",
+              "host": [
+                "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas"
+              ]
+            },
+            "description": "fecha_limite debe ir en ISO UTC terminado en Z.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Tarea creada desde Postman\",\n  \"descripcion\": \"Evidencia del flujo de eventos\",\n  \"fecha_limite\": \"2026-11-30T23:59:00Z\",\n  \"puntaje_max\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('tareaId', pm.response.json().tarea_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrar como ana.torres (UTEC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/login",
+              "host": [
+                "{{urlAuth}}/auth/login"
+              ]
+            },
+            "description": "La entrega la hace el ALUMNO: aqui cambia el rol.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"UTEC\",\n  \"email\": \"ana.torres@utec.edu.pe\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y token presente', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(d).to.have.property('token');",
+                  "});",
+                  "// El tenant y el rol los decide el token, no el cliente:",
+                  "// se guardan para que el resto de la coleccion los use.",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.collectionVariables.set('tenantActual', d.usuario.tenant_id);",
+                  "pm.collectionVariables.set('rolActual', d.usuario.rol);",
+                  "pm.collectionVariables.set('userId', d.usuario.user_id);",
+                  "console.log('sesion:', d.usuario.tenant_id, d.usuario.rol, d.usuario.nombre);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar entrega (alumno)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas/{{tareaId}}/entregas",
+              "host": [
+                "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas/{{tareaId}}/entregas"
+              ]
+            },
+            "description": "El alumno sale del token, no del cuerpo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"Entrega enviada desde Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.test('publica EntregaRegistrada', () => pm.expect(pm.response.json().estado).to.eql('ENTREGADA'));",
+                  "pm.collectionVariables.set('alumnoId', pm.response.json().alumno_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mis notas (alumno)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlEval}}/evaluaciones/mis-notas",
+              "host": [
+                "{{urlEval}}/evaluaciones/mis-notas"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrar como profe (UTEC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/login",
+              "host": [
+                "{{urlAuth}}/auth/login"
+              ]
+            },
+            "description": "Calificar es cosa del DOCENTE: vuelve a cambiar el rol.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"UTEC\",\n  \"email\": \"profe@utec.edu.pe\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y token presente', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(d).to.have.property('token');",
+                  "});",
+                  "// El tenant y el rol los decide el token, no el cliente:",
+                  "// se guardan para que el resto de la coleccion los use.",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.collectionVariables.set('tenantActual', d.usuario.tenant_id);",
+                  "pm.collectionVariables.set('rolActual', d.usuario.rol);",
+                  "pm.collectionVariables.set('userId', d.usuario.user_id);",
+                  "console.log('sesion:', d.usuario.tenant_id, d.usuario.rol, d.usuario.nombre);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar entregas (docente)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas/{{tareaId}}/entregas",
+              "host": [
+                "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas/{{tareaId}}/entregas"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Calificar entrega (docente)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas/{{tareaId}}/entregas/{{alumnoId}}/calificacion",
+              "host": [
+                "{{urlEval}}/evaluaciones/cursos/{{cursoId}}/tareas/{{tareaId}}/entregas/{{alumnoId}}/calificacion"
+              ]
+            },
+            "description": "Publica NotaPublicada. Una nota baja lleva al alumno a AMBAR o ROJO.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nota\": 4,\n  \"retroalimentacion\": \"Nota baja a proposito: dispara el calculo de riesgo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.test('queda CALIFICADA', () => pm.expect(pm.response.json().estado).to.eql('CALIFICADA'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4 · Analitica (ms-analitica)",
+      "description": "Consume los eventos y publica AlumnoEnRiesgo. 25+ = AMBAR, 50+ = ROJO.",
+      "item": [
+        {
+          "name": "Resumen de riesgo del tenant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlAnalitica}}/analitica/resumen",
+              "host": [
+                "{{urlAnalitica}}/analitica/resumen"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "console.log('niveles:', JSON.stringify(pm.response.json().niveles));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Alumnos en ROJO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlAnalitica}}/analitica/riesgo?nivel=ROJO&limit=12",
+              "host": [
+                "{{urlAnalitica}}/analitica/riesgo?nivel=ROJO&limit=12"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Indicadores de un alumno",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlAnalitica}}/analitica/alumnos/{{alumnoId}}",
+              "host": [
+                "{{urlAnalitica}}/analitica/alumnos/{{alumnoId}}"
+              ]
+            },
+            "description": "Despues de calificar con nota baja, aqui se ve el nivel recalculado."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json();",
+                  "console.log('nivel:', d.nivel, 'puntaje:', d.puntaje, 'motivos:', d.motivos);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5 · Notificaciones (ms-notificaciones · SQS + DLQ)",
+      "description": "Consume AlumnoEnRiesgo desde su cola; los fallos van a la DLQ tras 3 intentos.",
+      "item": [
+        {
+          "name": "Bandeja del usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlNotif}}/notificaciones?limit=20",
+              "host": [
+                "{{urlNotif}}/notificaciones?limit=20"
+              ]
+            },
+            "description": "Los avisos con origen ms-evaluaciones o ms-analitica provienen de eventos reales."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const reales = d.notificaciones.filter(n => n.origen && n.origen !== 'seed');",
+                  "console.log('avisos de eventos reales:', reales.length);",
+                  "reales.slice(0,5).forEach(n => console.log(' -', n.origen, '|', n.evento, '|', n.mensaje));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Traza de eventos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlNotif}}/notificaciones/traza?limit=12",
+              "host": [
+                "{{urlNotif}}/notificaciones/traza?limit=12"
+              ]
+            },
+            "description": "Trazabilidad: que evento llego, de donde y cuando."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Marcar todas como leidas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlNotif}}/notificaciones/leida-todas",
+              "host": [
+                "{{urlNotif}}/notificaciones/leida-todas"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6 · Aislamiento multi-tenant",
+      "description": "Las tres pruebas del guion del avance. IMPORTANTE: los ids se repiten entre tenants (los tres tienen C0001..C0003) porque cada uno vive en su propio esquema. Por eso el 404 cruzado se prueba con un curso creado solo en UTEC.",
+      "item": [
+        {
+          "name": "Sin token -> 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlCursos}}/cursos",
+              "host": [
+                "{{urlCursos}}/cursos"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 sin credenciales', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Token invalido -> 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer token-que-no-existe"
+              }
+            ],
+            "url": {
+              "raw": "{{urlCursos}}/cursos",
+              "host": [
+                "{{urlCursos}}/cursos"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Un token que no esta en la tabla de sesiones se rechaza."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 con token invalido', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrar como profe (UTEC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/login",
+              "host": [
+                "{{urlAuth}}/auth/login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"UTEC\",\n  \"email\": \"profe@utec.edu.pe\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y token presente', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(d).to.have.property('token');",
+                  "});",
+                  "// El tenant y el rol los decide el token, no el cliente:",
+                  "// se guardan para que el resto de la coleccion los use.",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.collectionVariables.set('tenantActual', d.usuario.tenant_id);",
+                  "pm.collectionVariables.set('rolActual', d.usuario.rol);",
+                  "pm.collectionVariables.set('userId', d.usuario.user_id);",
+                  "console.log('sesion:', d.usuario.tenant_id, d.usuario.rol, d.usuario.nombre);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "a) Crear curso solo en UTEC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlCursos}}/cursos",
+              "host": [
+                "{{urlCursos}}/cursos"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"CS-ISO\",\n  \"nombre\": \"Prueba de aislamiento\",\n  \"descripcion\": \"Temporal: se elimina en el paso (c)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('cursoAisladoId', pm.response.json().curso_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrar como profe (NORTE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/login",
+              "host": [
+                "{{urlAuth}}/auth/login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"NORTE\",\n  \"email\": \"profe@inorte.edu.pe\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y token presente', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(d).to.have.property('token');",
+                  "});",
+                  "// El tenant y el rol los decide el token, no el cliente:",
+                  "// se guardan para que el resto de la coleccion los use.",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.collectionVariables.set('tenantActual', d.usuario.tenant_id);",
+                  "pm.collectionVariables.set('rolActual', d.usuario.rol);",
+                  "pm.collectionVariables.set('userId', d.usuario.user_id);",
+                  "console.log('sesion:', d.usuario.tenant_id, d.usuario.rol, d.usuario.nombre);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "b) Pedirlo con token de NORTE -> 404",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlCursos}}/cursos/{{cursoAisladoId}}",
+              "host": [
+                "{{urlCursos}}/cursos/{{cursoAisladoId}}"
+              ]
+            },
+            "description": "El tenant sale del token: el cliente no puede falsearlo. Se usa un id creado SOLO en UTEC porque C0001..C0003 existen en los tres tenants (un esquema por tenant, mismos ids).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"intento cruzado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404: no existe en el esquema de NORTE', () => pm.response.to.have.status(404));",
+                  "pm.test('codigo CURSO_NO_ENCONTRADO', () => pm.expect(pm.response.json().error).to.eql('CURSO_NO_ENCONTRADO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Entrar como profe (UTEC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/login",
+              "host": [
+                "{{urlAuth}}/auth/login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"UTEC\",\n  \"email\": \"profe@utec.edu.pe\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "pm.test('200 y token presente', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(d).to.have.property('token');",
+                  "});",
+                  "// El tenant y el rol los decide el token, no el cliente:",
+                  "// se guardan para que el resto de la coleccion los use.",
+                  "pm.collectionVariables.set('token', d.token);",
+                  "pm.collectionVariables.set('tenantActual', d.usuario.tenant_id);",
+                  "pm.collectionVariables.set('rolActual', d.usuario.rol);",
+                  "pm.collectionVariables.set('userId', d.usuario.user_id);",
+                  "console.log('sesion:', d.usuario.tenant_id, d.usuario.rol, d.usuario.nombre);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "c) Eliminarlo con token de UTEC",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{urlCursos}}/cursos/{{cursoAisladoId}}",
+              "host": [
+                "{{urlCursos}}/cursos/{{cursoAisladoId}}"
+              ]
+            },
+            "description": "Deja la base como estaba."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7 · Cerrar sesion",
+      "description": "Va al final: invalida el token y las peticiones posteriores darian 401.",
+      "item": [
+        {
+          "name": "Cerrar sesion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              }
+            ],
+            "url": {
+              "raw": "{{urlAuth}}/auth/logout",
+              "host": [
+                "{{urlAuth}}/auth/logout"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
