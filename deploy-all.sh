@@ -42,8 +42,28 @@ quiere() { [[ -z "$SOLO" ]] || [[ ",$SOLO," == *",$1,"* ]]; }
 mkdir -p "$AQUI/salida"; : > "$AQUI/salida/apis.env"
 
 if quiere infra-base || quiere ms-cursos || quiere ms-evaluaciones; then
-  [[ -n "${DB_PASSWORD:-}" ]] || { echo "✗ Falta DB_PASSWORD (contraseña de la RDS). Ejemplo:  export DB_PASSWORD='StudyPulse2026x'"; exit 1; }
+  [[ -n "${DB_PASSWORD:-}" ]] || { echo "✗ Falta DB_PASSWORD (contraseña de la RDS). Exporta:  export DB_PASSWORD='<8+ caracteres, sin / @ \" ni espacios>'"; exit 1; }
   [[ "$DB_PASSWORD" =~ ^[^/@\"[:space:]]{8,}$ ]] || { echo "✗ DB_PASSWORD debe tener 8+ caracteres y no usar / @ \" ni espacios"; exit 1; }
+fi
+
+if quiere ms-auth; then
+  falta_auth=0
+  [[ "${TENANT_INVITE_CODES:-}" == "{"* ]] || {
+    echo "✗ Falta TENANT_INVITE_CODES (objeto JSON con los códigos de invitación por tenant)."
+    falta_auth=1
+  }
+  [[ -n "${FRONTEND_ORIGIN:-}" && "${FRONTEND_ORIGIN:-}" != */ ]] || {
+    echo "✗ Falta FRONTEND_ORIGIN (origen del frontend, sin barra final)."
+    falta_auth=1
+  }
+  if [[ $falta_auth -ne 0 ]]; then
+    cat <<'AYUDA'
+  Exporta ambas antes de desplegar ms-auth, por ejemplo:
+    export TENANT_INVITE_CODES='{"UTEC":"<codigo>","NORTE":"<codigo>","ANDINO":"<codigo>"}'
+    export FRONTEND_ORIGIN='https://<tu-app>.amplifyapp.com'
+AYUDA
+    exit 1
+  fi
 fi
 
 empaquetar_driver() {   # pymysql es Python puro: se instala en ./vendor y viaja dentro del zip de la Lambda
@@ -70,15 +90,34 @@ if command -v aws >/dev/null 2>&1; then
 fi
 
 echo; echo "▶ Recolectando URLs…"
-declare -A VAR=( [ms-auth]=AUTH [ms-cursos]=CURSOS [ms-evaluaciones]=EVAL [ms-analitica]=ANALITICA [ms-notificaciones]=NOTIF [ms-practica]=PRACTICA )
-declare -A CLAVE=( [ms-auth]=auth [ms-cursos]=cursos [ms-evaluaciones]=eval [ms-analitica]=analitica [ms-notificaciones]=notif [ms-practica]=practica )
+# macOS trae bash 3.2, sin arreglos asociativos: el mapeo servicio→variable va en funciones.
+var_de() {
+  case "$1" in
+    ms-auth) echo AUTH ;;
+    ms-cursos) echo CURSOS ;;
+    ms-evaluaciones) echo EVAL ;;
+    ms-analitica) echo ANALITICA ;;
+    ms-notificaciones) echo NOTIF ;;
+    ms-practica) echo PRACTICA ;;
+  esac
+}
+clave_de() {
+  case "$1" in
+    ms-auth) echo auth ;;
+    ms-cursos) echo cursos ;;
+    ms-evaluaciones) echo eval ;;
+    ms-analitica) echo analitica ;;
+    ms-notificaciones) echo notif ;;
+    ms-practica) echo practica ;;
+  esac
+}
 JSON="{"
 for s in ms-auth ms-cursos ms-evaluaciones ms-analitica ms-notificaciones ms-practica; do
   [[ -d "$RAIZ/$s" ]] || continue
   u="$(url_base "$s")"
   [[ -n "$u" ]] || { echo "  (sin URL para $s: ¿está desplegado?)"; continue; }
-  echo "VITE_API_${VAR[$s]}=$u" | tee -a "$AQUI/salida/apis.env"
-  JSON+="\"${CLAVE[$s]}\":\"$u\","
+  echo "VITE_API_$(var_de "$s")=$u" | tee -a "$AQUI/salida/apis.env"
+  JSON+="\"$(clave_de "$s")\":\"$u\","
 done
 echo "${JSON%,}}" > "$AQUI/salida/apis.json"
 
