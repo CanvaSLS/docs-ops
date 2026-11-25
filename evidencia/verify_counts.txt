@@ -1,0 +1,22 @@
+microservicio       tabla                    UTEC    NORTE   ANDINO     TOTAL
+ms-auth             sp_usuarios             10110    10110    10110     30330
+                    → OK  total ms-auth                                 30330
+
+ms-cursos           sp_cursos                  60       60       60       180
+ms-cursos           sp_modulos                480      480      480      1440
+ms-cursos           sp_matriculas           10012    10012    10012     30036
+                    → OK  total ms-cursos                                31656
+
+ms-evaluaciones     sp_tareas                 240      240      240       720
+ms-evaluaciones     sp_entregas             10007    10007    10007     30021
+                    → OK  total ms-evaluaciones                                30741
+
+ms-analitica        sp_indicadores          10000    10000    10000     30000
+                    → OK  total ms-analitica                                30000
+
+ms-notificaciones   sp_notificaciones       10000    10000    10000     30000
+                    → OK  total ms-notificaciones                                30000
+
+ms-practica         sp_tarjetas             10000    10000    10000     30000
+                    → OK  total ms-practica                                30000
+

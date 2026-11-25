@@ -1,0 +1,16 @@
+
+====================================================================================================
+PASS  1. Login de docente, alumnas y admin en 2 tenants
+        4 roles × 2 tenants
+PASS  2. Cada tenant lista SOLO sus cursos
+        UTEC=60 cursos · NORTE=60 cursos, sin mezcla
+PASS  3. CRUD de curso (verifícalo en RDS → esquema cursos_<tenant>, tabla cursos)
+        POST 201 → PUT 200 → DELETE 200 → DELETE 404 (curso C526D4E)
+PASS  4. Un tenant NO accede a datos de otro (ataques rechazados)
+        body ajeno 403 · query ajena 403 · token falso 401 · cursor ajeno 403 · alumna en endpoint docente 403
+PASS  5. Evento → semáforo ROJO → alerta (EDA: SNS→SQS→Lambda)
+        semáforo AMBAR → ROJO sin llamada síncrona; la traza muestra ['AlumnoEnRiesgo', 'EntregaRegistrada', 'NotaPublicada']
+PASS  6. Notificaciones por usuario y tenant
+        bandeja UTEC=5+ · sin intersección con NORTE (0)
+====================================================================================================
+6/6 verificaciones OK
