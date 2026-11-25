@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: StudyPulse · CanvaSLS API
+  title: CanvaSLS API
   version: 1.0.0
   description: '6 microservicios serverless (un API Gateway cada uno). Pulsa **Authorize**,
     pega el `token` de /auth/login y prueba. El tenant NUNCA se envía: sale del token
@@ -11,6 +11,26 @@ components:
       type: http
       scheme: bearer
 paths:
+  /auth/register:
+    post:
+      tags:
+      - ms-auth
+      summary: Registrar usuario (alumno/docente) en un tenant
+      operationId: registro
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+    servers:
+    - url: https://api.invalid/auth
+      description: ms-auth
   /auth/registro:
     post:
       tags:
@@ -101,6 +121,28 @@ paths:
         in: query
         schema:
           type: string
+    servers:
+    - url: https://api.invalid/auth
+      description: ms-auth
+  /auth/logout:
+    post:
+      tags:
+      - ms-auth
+      summary: logout
+      operationId: logout
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Validación
+        '401':
+          description: Token ausente/inválido/expirado
+        '403':
+          description: Rol, tenant o prefijo no autorizado
+        '404':
+          description: No existe en tu tenant
+      security:
+      - bearer: []
     servers:
     - url: https://api.invalid/auth
       description: ms-auth

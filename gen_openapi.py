@@ -64,7 +64,7 @@ def main():
         item["servers"] = [{"url": f"https://api.invalid/{SVC[r['servicio']]}", "description": r["servicio"]}]
     spec = {
         "openapi": "3.0.3",
-        "info": {"title": "StudyPulse · CanvaSLS API", "version": "1.0.0",
+        "info": {"title": "CanvaSLS API", "version": "1.0.0",
                  "description": "6 microservicios serverless (un API Gateway cada uno). Pulsa **Authorize**, pega el `token` de /auth/login y prueba. "
                                 "El tenant NUNCA se envía: sale del token (Lambda Authorizer). Credenciales demo: profe@utec.edu.pe / Demo2026!"},
         "components": {"securitySchemes": {"bearer": {"type": "http", "scheme": "bearer"}}},
